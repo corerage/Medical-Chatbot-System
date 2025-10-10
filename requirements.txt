@@ -1,0 +1,6 @@
+dotenv
+boto3
+langchain
+pypdf
+langchain-community
+langchain-pinecone
