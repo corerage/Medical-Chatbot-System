@@ -1,3 +1,4 @@
 .env
 /startup
 /Medical_book.pdf
+__pycache__/
