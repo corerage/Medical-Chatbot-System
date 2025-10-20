@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nne - Medical Chatbot</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="chat-shell" role="application" aria-label="Chatbot">
+      <header>
+        <div class="avatar" aria-hidden="true">CB</div>
+        <div>
+          <h1>Nne Chatbot</h1>
+          <p>Medical assistant built by Courage</p>
+        </div>
+      </header>
+
+      <!-- Messages Area -->
+      <div class="messages" id="messages" aria-live="polite" aria-relevant="additions"></div>
+
+      <!-- Input Form -->
+      <form id="chat-form" autocomplete="off" aria-label="Message form">
+        <textarea id="input" placeholder="Type a message — press Enter to send" aria-label="Message input"></textarea>
+        <button class="send" id="sendBtn" type="submit">Send</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById('messages');
+    const form = document.getElementById('chat-form');
+    const input = document.getElementById('input');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Add message bubble
+    function appendMessage(text, who = 'bot') {
+      const wrap = document.createElement('div');
+      wrap.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
+      wrap.innerHTML = `<div class="content">${text}</div>`;
+      messagesEl.appendChild(wrap);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    // Typing indicator
+    let typingEl = null;
+    function showTyping() {
+      if (typingEl) return;
+      typingEl = document.createElement('div');
+      typingEl.className = 'msg bot';
+      typingEl.innerHTML = `<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+      messagesEl.appendChild(typingEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function hideTyping() {
+      if (typingEl) {
+        typingEl.remove();
+        typingEl = null;
+      }
+    }
+
+    // Send message to FastAPI backend
+    async function queryBot(message) {
+      const res = await fetch("http://127.0.0.1:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message }),
+      });
+      const data = await res.json();
+      return data.reply;
+    }
+
+    // Handle form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text) return;
+      appendMessage(text, 'user');
+      input.value = '';
+      sendBtn.disabled = true;
+
+      showTyping();
+      try {
+        const reply = await queryBot(text);
+        hideTyping();
+        appendMessage(reply, 'bot');
+      } catch (err) {
+        hideTyping();
+        appendMessage('Error: ' + (err.message || String(err)), 'bot');
+      } finally {
+        sendBtn.disabled = false;
+        input.focus();
+      }
+    });
+
+    // Allow Enter to send, Shift+Enter for new line
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    // Focus input on load and show greeting
+    window.addEventListener('load', () => {
+      input.focus();
+      appendMessage('Hi — my name is Nne, your medical chatbot assistant. How can I help today?', 'bot');
+    });
+  </script>
+</body>
+</html>

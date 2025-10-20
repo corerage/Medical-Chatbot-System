@@ -66,7 +66,7 @@ def split_docs(clean_pdf):
 
 def main():
     try:
-        logger.info("Starting ETL process...")
+        logger.info("Starting transformation process...")
         Bucket = S3_BUCKET_NAME
         s3_key = "data/medical_book.pdf"
         document = get_object_from_s3(Bucket, s3_key)
@@ -88,9 +88,9 @@ def main():
             file_type="application/json",
             json_data=relevant_docs,
         )
-        logger.info("ETL process completed successfully...")
+        logger.info("Transformation process completed successfully...")
     except Exception as e:
-        logger.error(f"ETL process failed: {e}")
+        logger.error(f"Transformation process failed: {e}")
 
 
 if __name__ == "__main__":

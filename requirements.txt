@@ -4,3 +4,4 @@ langchain
 pypdf
 langchain-community
 langchain-pinecone
+pinecone-client

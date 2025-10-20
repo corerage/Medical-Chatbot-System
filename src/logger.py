@@ -1,14 +1,30 @@
 import logging
 import sys
+import warnings
+
+try:
+    from langchain_core._api.deprecation import LangChainDeprecationWarning
+
+    warnings.filterwarnings("ignore", category=LangChainDeprecationWarning)
+except ImportError:
+    warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+try:
+    from colorlog import ColoredFormatter
+
+    COLORLOG_AVAILABLE = True
+except ImportError:
+    COLORLOG_AVAILABLE = False
 
 
-def setup_logger(name: str, level=logging.INFO):
+def setup_logger(name: str, level=logging.INFO, use_color: bool = True):
     """
-    Set up a logger with console handler for CloudWatch
+    Set up a logger with console handler for CloudWatch and colored terminal output
 
     Args:
         name: Logger name (usually __name__ of the module)
         level: Logging level
+        use_color: Whether to use colored output (requires colorlog package)
 
     Returns:
         logging.Logger: Configured logger instance
@@ -21,10 +37,23 @@ def setup_logger(name: str, level=logging.INFO):
         return logger
 
     # Create formatter
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    if use_color and COLORLOG_AVAILABLE:
+        formatter = ColoredFormatter(
+            "%(log_color)s%(asctime)s - %(name)s - %(levelname)s - %(message)s%(reset)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+            log_colors={
+                "DEBUG": "cyan",
+                "INFO": "green",
+                "WARNING": "yellow",
+                "ERROR": "red",
+                "CRITICAL": "red,bg_white",
+            },
+        )
+    else:
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
+        )
 
     # Console handler (CloudWatch captures stdout/stderr)
     console_handler = logging.StreamHandler(sys.stdout)
