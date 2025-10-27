@@ -10,7 +10,7 @@ from .config import (  # Add the dot for relative import
     PINECONE_API_KEY,
     OPENAI_API_KEY,
 )
-from .surpress_warning import __initialized__
+# from .surpress_warning import __initialized__
 
 __all__ = [
     "AWS_ACCESS_KEY_ID",
@@ -23,5 +23,5 @@ __all__ = [
     "FILE_ID",
     "PINECONE_API_KEY",
     "OPENAI_API_KEY",
-    "__initialized__",
+    # "__initialized__",
 ]

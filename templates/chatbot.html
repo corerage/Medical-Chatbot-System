@@ -1,3 +1,4 @@
+﻿
 <!doctype html>
 <html lang="en">
 <head>
@@ -10,11 +11,14 @@
   <div class="container">
     <div class="chat-shell" role="application" aria-label="Chatbot">
       <header>
-        <div class="avatar" aria-hidden="true">CB</div>
+        <div class="avatar" aria-hidden="true">
+          <img src="/static/bot.png" alt="Nne Chatbot Avatar" />
+        </div>
         <div>
           <h1>Nne Chatbot</h1>
-          <p>Medical assistant built by Courage</p>
+          <p>Medical assistant built by Ebube Nwaigbo</p>
         </div>
+        <button class="mode-toggle" id="modeToggle" aria-label="Toggle theme">☀️</button>
       </header>
 
       <!-- Messages Area -->
@@ -22,8 +26,8 @@
 
       <!-- Input Form -->
       <form id="chat-form" autocomplete="off" aria-label="Message form">
-        <textarea id="input" placeholder="Type a message — press Enter to send" aria-label="Message input"></textarea>
-        <button class="send" id="sendBtn" type="submit">Send</button>
+        <textarea id="input" placeholder="Ask about any medical symptom..." aria-label="Message input"></textarea>
+        <button class="send" id="sendBtn" type="submit">➤</button>
       </form>
     </div>
   </div>
@@ -38,7 +42,11 @@
     function appendMessage(text, who = 'bot') {
       const wrap = document.createElement('div');
       wrap.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
-      wrap.innerHTML = `<div class="content">${text}</div>`;
+      const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      wrap.innerHTML = `
+        <div class="content">${text}</div>
+        <div class="meta">${time}</div>
+      `;
       messagesEl.appendChild(wrap);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
@@ -49,7 +57,10 @@
       if (typingEl) return;
       typingEl = document.createElement('div');
       typingEl.className = 'msg bot';
-      typingEl.innerHTML = `<div class="typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+      typingEl.innerHTML = `
+        <div class="typing">
+          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>`;
       messagesEl.appendChild(typingEl);
       messagesEl.scrollTop = messagesEl.scrollHeight;
     }
@@ -103,10 +114,23 @@
       }
     });
 
+    // Auto-resize textarea
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 120) + 'px';
+    });
+
     // Focus input on load and show greeting
     window.addEventListener('load', () => {
       input.focus();
-      appendMessage('Hi — my name is Nne, your medical chatbot assistant. How can I help today?', 'bot');
+      appendMessage('Hi 👋 my name is Nne,\n your medical chatbot assistant. How can I help today?', 'bot');
+    });
+
+    // Light/Dark mode toggle
+    const modeToggle = document.getElementById('modeToggle');
+    modeToggle.addEventListener('click', () => {
+      document.body.classList.toggle('light');
+      modeToggle.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
     });
   </script>
 </body>
