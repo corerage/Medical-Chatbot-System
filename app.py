@@ -71,9 +71,9 @@ def get_session_memory(session_id: str):
 chain_with_memory = RunnableWithMessageHistory(
     retrieval_chain,
     get_session_memory,
-    input_messages_key="input",  # Add this
-    history_messages_key="chat_history",  # Rename from history_key
-    output_messages_key="answer",  # Rename from output_key
+    input_messages_key="input",
+    history_messages_key="chat_history",
+    output_messages_key="answer",
 )
 
 
