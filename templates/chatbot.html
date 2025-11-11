@@ -74,7 +74,7 @@
 
     // Send message to FastAPI backend
     async function queryBot(message) {
-      const res = await fetch("/chat", {
+      const res = await fetch("http://54.224.2.245/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message }),
