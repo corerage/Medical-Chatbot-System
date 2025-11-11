@@ -8,9 +8,12 @@ jobs:
   Continuous-Integration:
     runs-on: ubuntu-latest
 
+    outputs:
+      image: ${{ steps.build-image.outputs.image }}
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -28,11 +31,12 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
-          IMAGE_TAG: latest
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          # New syntax for setting output (replaces deprecated set-output)
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
           echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
   Continuous-Deployment:
@@ -53,12 +57,21 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Run Docker Image to serve users
+      - name: Pull latest image from ECR
+        env:
+          IMAGE: ${{ needs.Continuous-Integration.outputs.image }}
         run: |
-          # Stop and remove any old containers to free port 8000
-          docker stop $(docker ps -q) || true
-          docker rm $(docker ps -aq) || true
-          # Run new container with automatic restart on EC2 reboot
+          docker pull $IMAGE
+
+      - name: Stop and remove old containers
+        run: |
+          docker stop $(docker ps -q) 2>/dev/null || true
+          docker rm $(docker ps -aq) 2>/dev/null || true
+
+      - name: Run Docker Image to serve users
+        env:
+          IMAGE: ${{ needs.Continuous-Integration.outputs.image }}
+        run: |
           docker run -d --restart always \
             -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
             -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
@@ -66,4 +79,4 @@ jobs:
             -e PINECONE_API_KEY="${{ secrets.PINECONE_API_KEY }}" \
             -e OPENAI_API_KEY="${{ secrets.OPENAI_API_KEY }}" \
             -p 8000:8000 \
-            "${{ steps.login-ecr.outputs.registry }}"/"${{ secrets.ECR_REPO }}":latest
+            $IMAGE
