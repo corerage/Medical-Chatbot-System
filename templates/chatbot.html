@@ -1,11 +1,10 @@
-﻿
-<!doctype html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Nne - Medical Chatbot</title>
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="/static/style.css" />
 </head>
 <body>
   <div class="container">
@@ -26,8 +25,12 @@
 
       <!-- Input Form -->
       <form id="chat-form" autocomplete="off" aria-label="Message form">
-        <textarea id="input" placeholder="Ask about any medical symptom..." aria-label="Message input"></textarea>
-        <button class="send" id="sendBtn" type="submit">➤</button>
+        <textarea 
+          id="input" 
+          placeholder="Ask about any medical symptom..." 
+          aria-label="Message input"
+        ></textarea>
+        <button class="send" id="sendBtn" type="submit" aria-label="Send message">➤</button>
       </form>
     </div>
   </div>
@@ -37,8 +40,9 @@
     const form = document.getElementById('chat-form');
     const input = document.getElementById('input');
     const sendBtn = document.getElementById('sendBtn');
+    const modeToggle = document.getElementById('modeToggle');
 
-    // Add message bubble
+    // Append a message bubble
     function appendMessage(text, who = 'bot') {
       const wrap = document.createElement('div');
       wrap.className = 'msg ' + (who === 'user' ? 'user' : 'bot');
@@ -59,7 +63,9 @@
       typingEl.className = 'msg bot';
       typingEl.innerHTML = `
         <div class="typing">
-          <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
+          <div class="dot"></div>
         </div>`;
       messagesEl.appendChild(typingEl);
       messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -72,15 +78,25 @@
       }
     }
 
-    // Send message to FastAPI backend
+    // Query FastAPI backend
     async function queryBot(message) {
-      const res = await fetch("http://13.217.142.147/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message }),
-      });
-      const data = await res.json();
-      return data.reply;
+      try {
+        const res = await fetch('/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ message }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+
+        const data = await res.json();
+        return data.reply;
+      } catch (error) {
+        console.error('Error querying bot:', error);
+        return 'Sorry, there was an error connecting to the chatbot. Please try again.';
+      }
     }
 
     // Handle form submit
@@ -88,6 +104,7 @@
       e.preventDefault();
       const text = input.value.trim();
       if (!text) return;
+
       appendMessage(text, 'user');
       input.value = '';
       sendBtn.disabled = true;
@@ -106,7 +123,7 @@
       }
     });
 
-    // Allow Enter to send, Shift+Enter for new line
+    // Enter to send, Shift+Enter for new line
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -120,14 +137,13 @@
       input.style.height = Math.min(input.scrollHeight, 120) + 'px';
     });
 
-    // Focus input on load and show greeting
+    // Initial greeting
     window.addEventListener('load', () => {
       input.focus();
-      appendMessage('Hi 👋 my name is Nne,\n your medical chatbot assistant. How can I help today?', 'bot');
+      appendMessage('Hi 👋 my name is Nne, your medical chatbot assistant. How can I help today?', 'bot');
     });
 
     // Light/Dark mode toggle
-    const modeToggle = document.getElementById('modeToggle');
     modeToggle.addEventListener('click', () => {
       document.body.classList.toggle('light');
       modeToggle.textContent = document.body.classList.contains('light') ? '🌙' : '☀️';
