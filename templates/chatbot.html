@@ -81,7 +81,7 @@
     // Query FastAPI backend
     async function queryBot(message) {
       try {
-        const res = await fetch('https://yyhnrduo6c.execute-api.us-east-1.amazonaws.com/test-stge/chat', {
+        const res = await fetch('/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message }),
